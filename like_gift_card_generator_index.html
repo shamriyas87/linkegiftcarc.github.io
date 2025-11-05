@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LIKE — Gift Card Creator</title>
+  <style>
+    :root{--bg:#0f2540;--accent:#ff8a00;--card:#ffffff;--muted:#98a0b3}
+    *{box-sizing:border-box;font-family:Inter,Segoe UI,Roboto,system-ui,Arial}
+    body{margin:0;min-height:100vh;background:linear-gradient(180deg,#07122b 0%,#0f2540 100%);color:#fff;display:flex;align-items:center;justify-content:center;padding:32px}
+    .app{width:100%;max-width:1100px;background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.02));border-radius:16px;padding:28px;display:grid;grid-template-columns:1fr 420px;gap:24px;box-shadow:0 10px 30px rgba(2,6,23,0.6)}
+    header{grid-column:1/-1;display:flex;align-items:center;gap:16px}
+    .logo{width:64px;height:64px;border-radius:50%;overflow:hidden;flex:0 0 64px;background:#fff;display:flex;align-items:center;justify-content:center}
+    .logo img{width:100%;height:100%;object-fit:cover}
+    h1{font-size:20px;margin:0}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+
+    .controls{padding:18px;background:rgba(255,255,255,0.02);border-radius:12px}
+    label{display:block;font-size:13px;color:var(--muted);margin-top:12px}
+    input[type=text],input[type=number],textarea,select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff;margin-top:6px}
+    textarea{min-height:90px;resize:vertical}
+    .row{display:flex;gap:12px}
+    .row > *{flex:1}
+    .btn{display:inline-block;padding:10px 14px;border-radius:10px;border:0;background:var(--accent);color:#081222;font-weight:600;cursor:pointer;margin-top:14px}
+    .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#fff}
+    .preview{padding:18px;background:linear-gradient(180deg,#071a33, #08314f);border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:12px}
+
+    /* Gift card mock */
+    .card-mock{width:360px;height:200px;border-radius:12px;background:linear-gradient(90deg,#0b355b,#093b6d);position:relative;padding:18px;color:#fff;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+    .card-top{display:flex;align-items:center;justify-content:space-between}
+    .card-brand{display:flex;align-items:center;gap:10px}
+    .card-brand img{width:56px;height:56px;border-radius:50%;background:#fff;padding:3px}
+    .card-value{font-size:22px;font-weight:700}
+    .card-code{position:absolute;left:18px;bottom:18px;font-family:monospace;background:rgba(255,255,255,0.08);padding:6px 10px;border-radius:6px}
+    .muted{color:var(--muted);font-size:13px}
+
+    .small{font-size:13px}
+    footer{grid-column:1/-1;text-align:center;color:var(--muted);font-size:13px;margin-top:10px}
+
+    @media (max-width:920px){.app{grid-template-columns:1fr;max-width:720px}.preview{order:2}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="logo"><img src="/mnt/data/cropped_circle_image.png" alt="LIKE logo" /></div>
+      <div>
+        <h1>LIKE — Gift Card Creator</h1>
+        <p class="lead">Create printable or digital gift cards quickly. Your uploaded logo is used on the generated card.</p>
+      </div>
+    </header>
+
+    <section class="controls">
+      <label>Recipient name</label>
+      <input id="recipient" type="text" placeholder="Recipient name (optional)" />
+
+      <div class="row">
+        <div>
+          <label>Amount</label>
+          <input id="amount" type="number" min="1" value="50" />
+        </div>
+        <div>
+          <label>Currency</label>
+          <select id="currency"><option>₹</option><option>$</option><option>€</option><option>£</option></select>
+        </div>
+      </div>
+
+      <label>Personal message</label>
+      <textarea id="message" placeholder="Add a short message (optional)"></textarea>
+
+      <label>Denomination type</label>
+      <select id="denomType"><option value="fixed">Fixed (single use)</option><option value="multi">Multi-use / Balance</option></select>
+
+      <div style="display:flex;gap:10px;align-items:center;margin-top:12px">
+        <button class="btn" id="generateBtn">Generate Gift Card</button>
+        <button class="btn secondary" id="resetBtn">Reset</button>
+      </div>
+
+      <div style="margin-top:12px">
+        <label class="small">Generated Code</label>
+        <input id="code" type="text" readonly placeholder="Generated code will appear here" />
+      </div>
+
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="btn" id="copyBtn">Copy Code</button>
+        <button class="btn" id="downloadBtn">Download PNG</button>
+      </div>
+
+    </section>
+
+    <aside class="preview">
+      <div style="width:100%;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div class="muted">Preview</div>
+          <div style="font-weight:700">Digital + Printable</div>
+        </div>
+        <div class="small">Website: <strong>LIKE</strong></div>
+      </div>
+
+      <div id="cardArea" class="card-mock" role="img" aria-label="Gift card preview">
+        <div class="card-top">
+          <div class="card-brand"><img id="logoPreview" src="/mnt/data/cropped_circle_image.png" alt="LIKE logo" /><div>
+            <div style="font-size:14px;font-weight:700">LIKE</div>
+            <div class="muted small">Gift Card</div>
+          </div></div>
+          <div class="card-value"><span id="currencyPreview">₹</span><span id="amountPreview">50</span></div>
+        </div>
+        <div style="margin-top:18px;color:rgba(255,255,255,0.9)" id="messagePreview">A special gift for you!</div>
+        <div class="card-code" id="codePreview">DAILYAI-XXXX-XXXX</div>
+      </div>
+
+      <canvas id="exportCanvas" width="900" height="500" style="display:none"></canvas>
+
+      <div style="width:100%;display:flex;gap:8px;justify-content:center;margin-top:8px">
+        <button class="btn secondary" id="saveTemplate">Save Template (Local)</button>
+        <button class="btn" id="loadTemplate">Load Template</button>
+      </div>
+
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center">Tip: Use the Download PNG button to save a printable image of the gift card. For production, integrate with your backend to issue & redeem unique codes.</div>
+    </aside>
+
+    <footer>Built with ❤️ for LIKE — edit & integrate this file into your site.</footer>
+  </div>
+
+<script>
+// Utility: secure-ish code generator
+function generateCode(prefix='LIKE', groups=3, chars=4){
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // avoid 0,1,O,I
+  const arr = new Uint32Array(groups*chars);
+  crypto.getRandomValues(arr);
+  const parts = [];
+  let idx=0;
+  for(let g=0;g<groups;g++){
+    let part='';
+    for(let c=0;c<chars;c++){
+      part += alphabet[arr[idx++] % alphabet.length];
+    }
+    parts.push(part);
+  }
+  return prefix + '-' + parts.join('-');
+}
+
+// DOM
+const recipient = document.getElementById('recipient');
+const amount = document.getElementById('amount');
+const currency = document.getElementById('currency');
+const message = document.getElementById('message');
+const generateBtn = document.getElementById('generateBtn');
+const resetBtn = document.getElementById('resetBtn');
+const codeField = document.getElementById('code');
+const codePreview = document.getElementById('codePreview');
+const amountPreview = document.getElementById('amountPreview');
+const currencyPreview = document.getElementById('currencyPreview');
+const messagePreview = document.getElementById('messagePreview');
+const cardArea = document.getElementById('cardArea');
+const downloadBtn = document.getElementById('downloadBtn');
+const copyBtn = document.getElementById('copyBtn');
+const saveTemplate = document.getElementById('saveTemplate');
+const loadTemplate = document.getElementById('loadTemplate');
+
+function updatePreview(){
+  amountPreview.textContent = amount.value || '0';
+  currencyPreview.textContent = currency.value || '₹';
+  messagePreview.textContent = message.value || 'A special gift for you!';
+}
+
+generateBtn.addEventListener('click', ()=>{
+  const c = generateCode('LIKE',3,4);
+  codeField.value = c;
+  codePreview.textContent = c;
+  updatePreview();
+});
+
+resetBtn.addEventListener('click', ()=>{
+  recipient.value=''; amount.value = 50; currency.value='₹'; message.value=''; codeField.value=''; codePreview.textContent='LIKE-XXXX-XXXX-XXXX'; updatePreview();
+});
+
+copyBtn.addEventListener('click', ()=>{
+  if(!codeField.value){ alert('Generate a code first.'); return; }
+  navigator.clipboard.writeText(codeField.value).then(()=>{
+    alert('Code copied to clipboard!');
+  }).catch(()=>{ alert('Could not copy — please copy manually.'); });
+});
+
+// Draw the card to a canvas and download as PNG
+function drawCardToCanvas(){
+  const canvas = document.getElementById('exportCanvas');
+  const ctx = canvas.getContext('2d');
+  // Set size: keep aspect ratio similar to preview
+  canvas.width = 1200; canvas.height = 700;
+  // background
+  const grad = ctx.createLinearGradient(0,0,canvas.width,0);
+  grad.addColorStop(0,'#0b355b'); grad.addColorStop(1,'#093b6d');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width,canvas.height);
+  // logo circle
+  const logoImg = new Image();
+  logoImg.crossOrigin = 'anonymous';
+  logoImg.src = document.getElementById('logoPreview').src;
+  return new Promise((res,rej)=>{
+    logoImg.onload = ()=>{
+      // draw logo
+      const lgSize = 160;
+      ctx.fillStyle = '#fff';
+      const lx = 60, ly = 60;
+      // draw round clipped image
+      ctx.save();
+      ctx.beginPath(); ctx.arc(lx+lgSize/2, ly+lgSize/2, lgSize/2, 0, Math.PI*2); ctx.closePath(); ctx.clip();
+      ctx.drawImage(logoImg, lx, ly, lgSize, lgSize);
+      ctx.restore();
+
+      // text
+      ctx.fillStyle='#fff'; ctx.font='bold 48px sans-serif'; ctx.fillText('LIKE', lx+lgSize+28, ly+60);
+      ctx.font='24px sans-serif'; ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.fillText('Gift Card', lx+lgSize+28, ly+100);
+
+      // amount
+      ctx.font='bold 72px sans-serif'; ctx.fillStyle='#fff'; ctx.fillText((currency.value||'₹')+ (amount.value||'0'), canvas.width - 420, 160);
+
+      // message
+      ctx.font='24px sans-serif'; ctx.fillStyle='rgba(255,255,255,0.95)'; ctx.fillText(message.value || 'A special gift for you!', 60, 260);
+
+      // code box
+      ctx.fillStyle='rgba(255,255,255,0.08)'; ctx.fillRect(60, 320, 480, 60);
+      ctx.font='26px monospace'; ctx.fillStyle='#fff'; ctx.fillText(codeField.value || 'LIKE-XXXX-XXXX-XXXX', 78, 360);
+
+      res(canvas.toDataURL('image/png'));
+    };
+    logoImg.onerror = ()=> rej(new Error('Logo load failed'));
+  });
+}
+
+downloadBtn.addEventListener('click', async ()=>{
+  if(!codeField.value){ alert('Generate a card first.'); return; }
+  try{
+    const dataUrl = await drawCardToCanvas();
+    const a = document.createElement('a'); a.href = dataUrl; a.download = (codeField.value || 'like-giftcard') + '.png';
+    document.body.appendChild(a); a.click(); a.remove();
+  }catch(e){ alert('Could not generate image: '+e.message); }
+});
+
+// Local template save/load
+saveTemplate.addEventListener('click', ()=>{
+  const template = {amount: amount.value, currency: currency.value, message: message.value};
+  localStorage.setItem('like_gift_template', JSON.stringify(template));
+  alert('Template saved locally in your browser.');
+});
+loadTemplate.addEventListener('click', ()=>{
+  const t = localStorage.getItem('like_gift_template');
+  if(!t){ alert('No template found.'); return; }
+  const parsed = JSON.parse(t); amount.value = parsed.amount || 50; currency.value = parsed.currency || '₹'; message.value = parsed.message || ''; updatePreview();
+});
+
+// Initial preview update
+updatePreview();
+
+// keep preview updated
+amount.addEventListener('input', updatePreview); currency.addEventListener('change', updatePreview); message.addEventListener('input', updatePreview);
+</script>
+</body>
+</html>
